@@ -10,7 +10,8 @@ class Treasure:
 			'Wand',
 			'Armor',
 			'Puppy',
-			'Healing Potion']
+			'Healing Potion',
+			'Sloppy Oreos']
 
 	def __init__(self):
 		self.my_type = self.types[ int(random.random()*len(self.types)) ]
@@ -51,7 +52,8 @@ class Monster(GamePiece):
 			'Tiny Toilet', 
 			'Gigantic Ant', 
 			'Supid Cato', 
-			'Momo the Giant Elf']
+			'Momo the Giant Elf',
+			'Silly Nannies']
 
 	def __init__(self):
 		self.my_type = self.types[ int(random.random()*len(self.types)) ]
@@ -66,6 +68,15 @@ class Hero(GamePiece):
 
 class Room:
 
+	types = ['Desert',
+			'Jungle',
+			'Really Cool and Snowy Room',
+			'Kids Play Area',
+			'Disco',
+			'Gothic',
+			'Cubicle O Death',
+			'Candy Shop']
+
 	def __init__(self):
 		if 45 > int(random.random()*100):
 			self.monster = Monster()
@@ -77,7 +88,10 @@ class Room:
 		else:
 			self.treasure = None
 
+		self.my_type = self.types[ int(random.random()*len(self.types)) ]
+
 	def status(self):
+		print "You walk into a %s room" % (self.my_type)
 		if None != self.monster:
 			return "A %s is attacking you with %d life" % (self.monster.my_type, self.monster.life_points())
 		else:
@@ -95,19 +109,63 @@ class Room:
 	def is_empty(self):
 		return not self.is_there_a_monster() and not self.is_there_treasure()
 
+	def hero_bufs(self):
+		buf_rooms = ['Kids Play Area',
+				'Jungle', 'Candy Shop']
+		debuf_rooms = [ 'Cubicle O Death', 'Disco']
+
+		if self.my_type in buf_rooms:
+			return int(random.random()*50)
+		elif self.my_type in debuf_rooms:
+			return -1*int(random.random()*50)
+		else:
+			return 0
+
+	def monster_bufs(self):
+		buf_rooms = [ 'Gothic',
+				'Cubicle O Death',
+				'Desert' ]
+		debuf_rooms = [ 'Kids Play Area',
+				'Jungle']
+
+		if self.my_type in buf_rooms:
+			return int(random.random()*50)
+		elif self.my_type in debuf_rooms:
+			return -1*int(random.random()*50)
+		else:
+			return 0
 
 
-h = Hero('Leia', 2000)
+h = Hero('Leia', 20000)
 
-for i in range(200):
+for i in range(2000):
 	print "Stepping into a new room %d...[%s:%d]" % (i, h.my_name, h.life_points())
 	r = Room()
 	print r.status()
+	if r.is_there_a_monster():
+		monster_buf = r.monster_bufs()
+		if monster_buf > 0:
+			print "%s feels real good by %d" % (r.monster.my_type, monster_buf)
+		elif monster_buf < 0:
+			print "%s looks kinda small by %d" % (r.monster.my_type, monster_buf)
+
+	hero_buf = r.hero_bufs()
+	if hero_buf > 0:
+		print "%s says taa-daa I feel jacked by %d" % (h.my_name, hero_buf)
+	elif hero_buf < 0:
+		print "%s coughs up blood and strength weakens by %d" % (h.my_name, hero_buf)
+
 	while r.is_there_a_monster():
 		if r.monster.my_type == 'Supid Cato':
 			myhit = int(random.random()*100)
 		else:
-			myhit = int(random.random()*20)
+			myhit = int(random.random()*50)
+
+		# Adjust myhit according to the room bufs
+		myhit += hero_buf
+		if myhit < 0:
+			myhit=0
+
 		print "%s hits %s with %d points" % (h.my_name, r.monster.my_type, myhit) 
 		r.monster.hit(myhit)
 		if not r.monster.is_alive():
@@ -121,7 +179,12 @@ for i in range(200):
 			if r.monster.my_type == 'Fire Dragon':
 				myhit = int(random.random()*500)
 			else:
-				myhit = int(random.random()*20)
+				myhit = int(random.random()*50)
+
+			# Adjust monster hit accoring to room bufs
+			myhit += monster_buf
+			if myhit < 0:
+				myhit=0
 			print "%s hits %s with %d points" % (r.monster.my_type, h.my_name, myhit) 
 			h.hit(myhit)
 
@@ -139,8 +202,20 @@ for i in range(200):
 		elif r.treasure.my_type == 'Puppy':
 			print "He licks you all over healing you 100 points"
 			h.heal(100)
+		elif r.treasure.my_type == 'Sloppy Oreos':
+			print "Oh crap, my teeth hurt!"
+			h.hit(int(random.random()*60))
+
+		if not h.is_alive():
+			print "Son of a gun, the treasure killed me..arrgh"
+			sys.exit(0)
 	else:
 		print "You cry and cry, but you still get nothin"
+
+	raw_input("press enter to continue")
+
+print "%s You've slayed all dem monsters. You exit the dungeon with %d life" \
+		 % (h.my_name, h.life_points())
 
 
 
