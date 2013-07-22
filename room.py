@@ -1,6 +1,7 @@
 
 import sys
 import random
+from optparse import OptionParser
 
 
 class Treasure:
@@ -136,9 +137,27 @@ class Room:
 			return 0
 
 
-h = Hero('Leia', 20000)
+################## MAIN ##################
 
-for i in range(2000):
+# Create the parameters
+
+parser = OptionParser()
+parser.add_option("-H", "--hero", dest="hero_name", type="string", default="Leia",
+		help="Your hero name")
+parser.add_option("-l", "--hero-life", dest="hero_life", type="int", default=2000,
+		help="The amount of life your hero has")
+parser.add_option("-r", "--number-of-rooms", dest="number_of_rooms", type="int", default=200,
+		help="The amount of rooms the hero has to get through")
+parser.add_option("-s", "--simulate", dest="simulate", action="store_true", default=False,
+		help="Do you want to simulate the dungeon crawl")
+
+(options, args) = parser.parse_args()
+
+h = Hero(options.hero_name, options.hero_life)
+
+for i in range(options.number_of_rooms):
+	print ""
+	print 60*"-"
 	print "Stepping into a new room %d...[%s:%d]" % (i, h.my_name, h.life_points())
 	r = Room()
 	print r.status()
@@ -203,8 +222,9 @@ for i in range(2000):
 			print "He licks you all over healing you 100 points"
 			h.heal(100)
 		elif r.treasure.my_type == 'Sloppy Oreos':
-			print "Oh crap, my teeth hurt!"
-			h.hit(int(random.random()*60))
+			myhit = int(random.random()*60)
+			print "Oh crap, my teeth hurt!  You lose %d points of health" % (myhit)
+			h.hit(myhit)
 
 		if not h.is_alive():
 			print "Son of a gun, the treasure killed me..arrgh"
@@ -212,7 +232,8 @@ for i in range(2000):
 	else:
 		print "You cry and cry, but you still get nothin"
 
-	raw_input("press enter to continue")
+	if not options.simulate:
+		raw_input("press enter to continue")
 
 print "%s You've slayed all dem monsters. You exit the dungeon with %d life" \
 		 % (h.my_name, h.life_points())
