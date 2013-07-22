@@ -2,6 +2,8 @@
 import sys
 import random
 from optparse import OptionParser
+import pygame
+import time
 
 
 class Treasure:
@@ -136,11 +138,18 @@ class Room:
 		else:
 			return 0
 
+def play(filename):
+	if pygame.mixer.music.get_busy():
+		pygame.mixer.music.queue(filename)
+	else:
+		pygame.mixer.music.load(filename)
+		pygame.mixer.music.play()
 
 ################## MAIN ##################
 
 # Create the parameters
 
+pygame.mixer.init()
 parser = OptionParser()
 parser.add_option("-H", "--hero", dest="hero_name", type="string", default="Leia",
 		help="Your hero name")
@@ -158,6 +167,7 @@ h = Hero(options.hero_name, options.hero_life)
 for i in range(options.number_of_rooms):
 	print ""
 	print 60*"-"
+	play('Rolling_Switch.ogg')
 	print "Stepping into a new room %d...[%s:%d]" % (i, h.my_name, h.life_points())
 	r = Room()
 	print r.status()
@@ -185,9 +195,14 @@ for i in range(options.number_of_rooms):
 		if myhit < 0:
 			myhit=0
 
-		print "%s hits %s with %d points" % (h.my_name, r.monster.my_type, myhit) 
+		print "%s hits %s with %d points" % (h.my_name, r.monster.my_type, myhit)
+		play('Slash8-Bit.ogg')
 		r.monster.hit(myhit)
 		if not r.monster.is_alive():
+			if r.monster.my_type == 'Fire Dragon':
+				play('BossDeath.ogg')
+			else:
+				play('EnemyDeath.ogg')
 			print "Hooray! %s is dead" % (r.monster.my_type)
 
 			myheals = int(random.random()*50)
@@ -204,12 +219,16 @@ for i in range(options.number_of_rooms):
 			myhit += monster_buf
 			if myhit < 0:
 				myhit=0
-			print "%s hits %s with %d points" % (r.monster.my_type, h.my_name, myhit) 
+			print "%s hits %s with %d points" % (r.monster.my_type, h.my_name, myhit)
+			play('Crush8-Bit.ogg')
 			h.hit(myhit)
 
 			if not h.is_alive():
+				play('Death.ogg')
 				print "Aaaarrrrgggghhhhhhhh!!!"
+				time.sleep(1)
 				sys.exit(0)
+		time.sleep(1)
 
 				
 	if r.is_there_treasure():
@@ -217,17 +236,23 @@ for i in range(options.number_of_rooms):
 		if r.treasure.my_type == 'Healing Potion':
 			myheals = int(random.random()*500)
 			h.heal(myheals)
+			play('Heal8-Bit.ogg')
 			print "Your thirst has been quenched by %d points" % (myheals)
 		elif r.treasure.my_type == 'Puppy':
+			play('Heal8-Bit.ogg')
 			print "He licks you all over healing you 100 points"
 			h.heal(100)
 		elif r.treasure.my_type == 'Sloppy Oreos':
 			myhit = int(random.random()*60)
 			print "Oh crap, my teeth hurt!  You lose %d points of health" % (myhit)
 			h.hit(myhit)
+		else:
+			play('Powerup.ogg')
 
 		if not h.is_alive():
+			play('Death.ogg')
 			print "Son of a gun, the treasure killed me..arrgh"
+			time.sleep(1)
 			sys.exit(0)
 	else:
 		print "You cry and cry, but you still get nothin"
