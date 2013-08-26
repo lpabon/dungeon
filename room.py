@@ -259,6 +259,7 @@ for i in range(options.number_of_rooms):
 
 	if not options.simulate:
 		raw_input("press enter to continue")
+	time.sleep(1)
 
 print "%s You've slayed all dem monsters. You exit the dungeon with %d life" \
 		 % (h.my_name, h.life_points())
